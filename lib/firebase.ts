@@ -1,7 +1,18 @@
-// lib/firebase.ts
-import { initializeApp, getApp, getApps, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+// /lib/firebase.ts
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
+
+/**
+ * .env.local に必須（NEXT_PUBLIC はブラウザ側から参照されます）
+ *
+ * NEXT_PUBLIC_FIREBASE_API_KEY=xxxx
+ * NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=xxxx.firebaseapp.com
+ * NEXT_PUBLIC_FIREBASE_PROJECT_ID=xxxx
+ * NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=xxxx.appspot.com
+ * NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=xxxx
+ * NEXT_PUBLIC_FIREBASE_APP_ID=1:xxxxxxxxxxxx:web:xxxxxxxxxxxx
+ */
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -12,17 +23,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-// 既存 or 初期化
-const _app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+// すでに初期化済みならそれを使う（HotReload対策）
+const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-const _auth: Auth = getAuth(_app);
-const _db: Firestore = getFirestore(_app);
+// 認証とDBクライアント
+export const auth: Auth = getAuth(app);
+export const db: Firestore = getFirestore(app);
 
-// named exports
-export const app = _app;
-export const auth = _auth;
-export const db = _db;
-export const getDb = () => db; // ← これが必要
+// Google プロバイダ（ヘッダーのログインで使用）
+export const googleProvider = new GoogleAuthProvider();
 
-// default export（保険）
-export default { app, auth, db, getDb };
+// 必要であればAppもexport
+export { app };

@@ -1,4 +1,4 @@
-"use client";
+"use client"; 
 
 import { useEffect, useState } from "react";
 
@@ -41,7 +41,6 @@ import {
   onSnapshot,
   doc,
   updateDoc,
-  serverTimestamp,
 } from "firebase/firestore";
 
 // ===== Issue 型 =====
@@ -96,27 +95,35 @@ export default function AdminPage() {
     return () => unsub();
   }, []);
 
-  // ステータス変更（※ ルールが未許可なら disabled のままにしてください）
+  // ステータス変更（1フィールドだけ更新）＋失敗時ロールバック
   const handleStatusChange = async (issueId: string, next: Issue["status"]) => {
+    const prev = issues;
+    // 楽観的更新
+    setIssues((cur) =>
+      cur.map((it) => (it.id === issueId ? { ...it, status: next } : it))
+    );
     try {
-      await updateDoc(doc(db, "issues", issueId), {
-        status: next,
-        updatedAt: serverTimestamp(),
-      });
+      await updateDoc(doc(db, "issues", issueId), { status: next });
     } catch (e) {
+      // 失敗 → ロールバック
+      setIssues(prev);
       alert("ステータス更新に失敗しました。権限/ルールをご確認ください。");
       console.error(e);
     }
   };
 
-  // 非表示トグル（hidden の切り替え）
+  // 非表示トグル（1フィールドだけ更新）＋失敗時ロールバック
   const handleHiddenToggle = async (issueId: string, checked: boolean) => {
+    const prev = issues;
+    // 楽観的更新
+    setIssues((cur) =>
+      cur.map((it) => (it.id === issueId ? { ...it, hidden: checked } : it))
+    );
     try {
-      await updateDoc(doc(db, "issues", issueId), {
-        hidden: checked,
-        updatedAt: serverTimestamp(),
-      });
+      await updateDoc(doc(db, "issues", issueId), { hidden: checked });
     } catch (e) {
+      // 失敗 → ロールバック
+      setIssues(prev);
       alert("非表示の更新に失敗しました。権限/ルールをご確認ください。");
       console.error(e);
     }
@@ -230,8 +237,6 @@ export default function AdminPage() {
                                     onValueChange={(v) =>
                                       handleStatusChange(issue.id, v as Issue["status"])
                                     }
-                                    // ルールで許可していない場合は無効化
-                                    disabled
                                   >
                                     <SelectTrigger className="w-32">
                                       <SelectValue />
