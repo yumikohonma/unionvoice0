@@ -1,0 +1,11 @@
+/* styles/layout.css */
+/* ここは自由に書き換えてOK。まずは 404 を解消するためのダミーCSS */
+
+:root {
+  --uv-accent: #4ca3af;
+}
+
+/* 例: 全体の背景をほんの少しだけ薄い色に */
+body {
+  background: #fafafa;
+}
