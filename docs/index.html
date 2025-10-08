@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>unionvoice0 – ファイル一覧</title>
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans JP,sans-serif;max-width:900px;margin:24px auto;padding:0 16px}
+h1{font-size:20px;margin:0 0 12px}.path{color:#6b7280;font-size:12px;margin-bottom:12px}
+ul{list-style:none;padding:0}li{display:flex;gap:8px;align-items:center;padding:8px;border-bottom:1px solid #eee}
+.btn{display:inline-block;padding:6px 10px;border:1px solid #ddd;border-radius:8px;margin:4px 8px 12px 0}
+</style>
+</head>
+<body>
+<h1>unionvoice0 – ファイル一覧</h1>
+<p class="path" id="crumbs"></p>
+<div><a class="btn" href="https://github.com/yumikohonma/unionvoice0" target="_blank">GitHubで開く</a></div>
+<ul id="list"></ul>
+<script>
+const owner="yumikohonma",repo="unionvoice0",branch="main";
+const api=p=>`https://api.github.com/repos/${owner}/${repo}/contents/${p?p.replace(/^\/+/,""):""}?ref=${branch}`;
+const list=document.getElementById("list"),crumbs=document.getElementById("crumbs");
+function render(path=""){crumbs.textContent="/"+(path||"");list.innerHTML="読み込み中…";
+fetch(api(path)).then(r=>r.json()).then(items=>{
+if(!Array.isArray(items)){list.innerHTML="<li>読み込みに失敗しました</li>";return}
+items.sort((a,b)=>a.type===b.type?a.name.localeCompare(b.name):a.type==="dir"?-1:1);
+const rows=items.map(it=>it.type==="dir"
+?`<li>📁 <a href="#" data-dir="${it.path}">${it.name}/</a></li>`
+:(()=>{const raw=`https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${it.path}`;
+const gh=`https://github.com/${owner}/${repo}/blob/${branch}/${it.path}`;
+return `<li>📄 <a href="${raw}" target="_blank">${it.name}</a> &nbsp;<a href="${gh}" target="_blank" style="color:#6b7280">[GitHub]</a></li>`})()).join("");
+const parent=path.split("/").slice(0,-1).join("/");const up=path?`<li>↩️ <a href="#" data-dir="${parent}">..</a></li>`:"";
+list.innerHTML=up+rows}).catch(()=>list.innerHTML="<li>読み込みに失敗しました</li>")}
+list.addEventListener("click",e=>{const a=e.target.closest("a[data-dir]");if(!a)return;e.preventDefault();render(a.dataset.dir)});
+render();
+</script>
+</body>
+</html>
